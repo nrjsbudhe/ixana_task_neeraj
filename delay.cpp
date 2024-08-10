@@ -9,5 +9,5 @@ void delay_us(uint32_t us_)
 uint32_t time_us()
 {
     std::cout << "time_us" << std::endl;
-    return 10000000;
+    return 100000000;
 }

@@ -59,7 +59,7 @@ bool gpio_irq_t::deinit(){
 }
 
 void gpio_irq_t::set_callback(void (*callback)(EDGE)){
-    std::cout << "IRQ on " <<  << std::endl;
+    std::cout << "IRQ on " << std::endl;
     std::cout << "gpio_irq_t::set_callback" << std::endl;
 }
 
