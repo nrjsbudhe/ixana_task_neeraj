@@ -4,14 +4,13 @@
 #include "inc/delay.h"
 #include "inc/gpio.hpp"
 
-void initialze_pins()
+void initialze_pins(gpio_out_t nRST, gpio_out_t nTEST, gpio_irq_t DONE, gpio_in_t SUCCESS, gpio_out_t CTRL, gpio_out_t SELECT)
 {   
     /*
-        Initialize the board pins
+        Initialize the board pins with suitable configurations
     */
     std::cout << "Initializing the board pins" << std::endl;
-    
-    gpio_out_t nRST = {PIN_NRST};
+
     while (nRST.init(PUPD::PUPD_NONE, OUT::OUT_PUSHPULL) != true)
     {
         std::cout << "Error: nRST.init failed" << std::endl;
@@ -19,7 +18,6 @@ void initialze_pins()
     }
     std::cout << "nRST.init succeeded" << std::endl;
 
-    gpio_out_t nTEST = {PIN_NTEST};
     while (nTEST.init(PUPD::PUPD_NONE, OUT::OUT_PUSHPULL) != true)
     {
         std::cout << "Error: nTEST.init failed" << std::endl;
@@ -27,7 +25,6 @@ void initialze_pins()
     }
     std::cout << "nTEST.init succeeded" << std::endl;
 
-    gpio_irq_t DONE = {PIN_DONE};
     while (DONE.init(PUPD::PUPD_UP,EDGE::EDGE_POSITIVE) != true)
     {
         std::cout << "Error: DONE.init failed" << std::endl;
@@ -35,7 +32,6 @@ void initialze_pins()
     }
     std::cout << "DONE.init succeeded" << std::endl;
 
-    gpio_in_t SUCCESS = {PIN_SUCCESS};
     while (SUCCESS.init(PUPD::PUPD_UP) != true)
     {
         std::cout << "Error: SUCCESS.init failed" << std::endl;
@@ -43,7 +39,6 @@ void initialze_pins()
     }
     std::cout << "SUCCESS.init succeeded" << std::endl;
 
-    gpio_out_t CTRL = {PIN_CTRL};
     while (CTRL.init(PUPD::PUPD_NONE, OUT::OUT_PUSHPULL) != true)
     {
         std::cout << "Error: CTRL.init failed" << std::endl;
@@ -51,7 +46,6 @@ void initialze_pins()
     }
     std::cout << "CTRL.init succeeded" << std::endl;
 
-    gpio_out_t SELECT = {PIN_SELECT};
     while (SELECT.init(PUPD::PUPD_NONE, OUT::OUT_PUSHPULL) != true)
     {
         std::cout << "Error: SELECT.init failed" << std::endl;
@@ -61,21 +55,71 @@ void initialze_pins()
 
 }
 
+void done_callback(EDGE edge)
+{
+    /*
+        Callback function for the DONE pin
+    */
+    std::cout << "DONE pin triggered" << std::endl;
+    int trig = 0;
+}
+
+bool configure_mode_0()
+{
+    /*
+        Configure the board for mode 0
+    */
+    std::cout << "Configuring the board for mode 0" << std::endl;
+    gpio_out_t nRST = {PIN_NRST};
+    gpio_out_t nTEST = {PIN_NTEST};
+    gpio_irq_t DONE = {PIN_DONE};
+    gpio_in_t SUCCESS = {PIN_SUCCESS};
+    gpio_out_t CTRL = {PIN_CTRL};
+    gpio_out_t SELECT = {PIN_SELECT};
+
+    initialze_pins(nRST, nTEST, DONE, SUCCESS, CTRL, SELECT);
+
+    nRST.write(false);
+    
+    if(nRST.read() == false)
+    {
+        vcca(true);
+        delay_us(1000000); //wait for stabilization
+        vccb(true);
+    }
+
+    SELECT.write(true); // Set the select pin to high
+    nTEST.write(true);  // Set the test pin to high
+    CTRL.write(false); // Set the control pin to low for mode 0  
+
+    nRST.write(true);
+    
+    uint32_t CURR_TIME = time_us();
+
+    while(time_us() - CURR_TIME < 10000); // Wait for 10ms
+    uint32_t size = 32;
+    uint32_t data = 0x12345678;
+    void *data_ptr = &data;
+
+    send_communications(data_ptr, 5);
+
+    // Wait for the time taken to send the data
+    CURR_TIME = time_us();
+    while (((1 + size*8)/1000000) * 2 > time_us() - CURR_TIME); // Wait for the time taken to send the data
+
+    while(DONE.read() == false); // Wait for the DONE pin to go high
+
+    return SUCCESS.read();
+
+}   
+
+
 void configure_mode_1()
 {
     /*
         Configure the board for mode 1
     */
     std::cout << "Configuring the board for mode 1" << std::endl;
-
-}
-
-void configure_mode_2()
-{
-    /*
-        Configure the board for mode 2
-    */
-    std::cout << "Configuring the board for mode 2" << std::endl;
 
 }
 
@@ -90,12 +134,12 @@ void configure_mode_3()
 
 int main()
 {
-    initialze_pins();
 
-    configure_mode_1();
 
-    configure_mode_2();
+    configure_mode_0();
 
-    configure_mode_3();   
+    // configure_mode_2();
+
+    // configure_mode_3();   
 }
 
