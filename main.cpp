@@ -5,7 +5,12 @@
 #include "inc/gpio.hpp"
 
 void initialze_pins()
-{
+{   
+    /*
+        Initialize the board pins
+    */
+    std::cout << "Initializing the board pins" << std::endl;
+    
     gpio_out_t nRST = {PIN_NRST};
     while (nRST.init(PUPD::PUPD_NONE, OUT::OUT_PUSHPULL) != true)
     {
@@ -22,8 +27,8 @@ void initialze_pins()
     }
     std::cout << "nTEST.init succeeded" << std::endl;
 
-    gpio_in_t DONE = {PIN_DONE};
-    while (DONE.init(PUPD::PUPD_UP) != true)
+    gpio_irq_t DONE = {PIN_DONE};
+    while (DONE.init(PUPD::PUPD_UP,EDGE::EDGE_POSITIVE) != true)
     {
         std::cout << "Error: DONE.init failed" << std::endl;
         delay_us(1000000);
@@ -56,9 +61,41 @@ void initialze_pins()
 
 }
 
+void configure_mode_1()
+{
+    /*
+        Configure the board for mode 1
+    */
+    std::cout << "Configuring the board for mode 1" << std::endl;
+
+}
+
+void configure_mode_2()
+{
+    /*
+        Configure the board for mode 2
+    */
+    std::cout << "Configuring the board for mode 2" << std::endl;
+
+}
+
+void configure_mode_3()
+{
+    /*
+        Configure the board for mode 3
+    */
+    std::cout << "Configuring the board for mode 3" << std::endl;
+}
+
+
 int main()
 {
     initialze_pins();
 
+    configure_mode_1();
+
+    configure_mode_2();
+
+    configure_mode_3();   
 }
 
